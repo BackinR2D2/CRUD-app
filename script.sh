@@ -1,13 +1,13 @@
 #!/bin/bash
 PS3="Selecteaza element [1-7]: "
 items=("Adauga inregistrare" "Sterge inregistrare" "Afisare situatie student" "Actualizeaza inregistrare" "Afisare studenti dupa medie" "Afisare cei mai inalti 3 studenti")
-
-emailRegex="^[a-z0-9!#\$%&'+/=?^_\`{|}~-]+(\.[a-z0-9!#$%&'+/=?^_\`{|}~-]+)@([a-z0-9]([a-z0-9-][a-z0-9])?\.)+[a-z0-9]([a-z0-9-]*[a-z0-9])?\$"
-
+ 
+emailRegex="^[a-z0-9!#\$%&'*+/=?^_\`{|}~-]+(\.[a-z0-9!#$%&'*+/=?^_\`{|}~-]+)*@([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z0-9]([a-z0-9-]*[a-z0-9])?\$"
+ 
 red='\033[0;31m'
 nc='\033[0m'
 green='\033[0;32m'
-
+ 
 function creareDB {
         if [ -f "./db.csv" ]
         then
@@ -30,7 +30,7 @@ function creareDB {
                 echo ""
         fi
 }
-
+ 
 function adaugare {
         echo "Adaugare Inregistrare"
         echo "Introduceti datele noii inregistrari: "
@@ -53,9 +53,9 @@ function adaugare {
         if [[ $email =~ $emailRegex ]]
         then
                 (( inregistrareValida++ ))
-
+ 
         fi
-
+ 
         if [[ $email != "" ]] && ! grep -q $email "db.csv";
         then
                 (( inregistrareValida++ ))
@@ -94,7 +94,7 @@ function adaugare {
                 echo ""
         fi
 }
-
+ 
 function sterge {
         echo ""
         echo "Stergere Inregistrare"
@@ -120,7 +120,7 @@ function sterge {
                 echo ""
         fi
 }
-
+ 
 function afisare {
         echo ""
         echo "Afisarea situatiei universitare si posibilitatea inscrierii in echipa de baschet"
@@ -128,7 +128,7 @@ function afisare {
         read -p 'Introduceti ID-ul: ' id
         local existaID=0
         sleep 0.5
-
+ 
         while IFS="," read -r ID nume email medie inaltime
         do
          if [[ $ID -eq $id ]]
@@ -136,7 +136,7 @@ function afisare {
                 (( existaID++ ))
          fi
         done < <(tail -n +2 "./db.csv")
-
+ 
         if  [[ $existaID -eq 0 ]]
          then
                 echo ""
@@ -166,11 +166,11 @@ function afisare {
                                 echo -e "${red}$nume este restant(a)${nc}"
                                 echo ""
                         fi
-
+ 
                 done < <(tail -n +2 "./db.csv")
         fi
 }
-
+ 
 function actualizare {
         echo ""
         echo "Actualizarea inregistrarii dupa ID"
@@ -199,7 +199,7 @@ function actualizare {
                         local noulEmailTemp=""
                         local nouaMedieTemp=""
                         local nouaInaltimeTemp=""
-
+ 
                         if [[ -n "$noulNume" ]]
                         then
                                 noulNumeTemp=$noulNume
@@ -207,7 +207,7 @@ function actualizare {
                         else
                                 noulNumeTemp=$nume
                         fi
-
+ 
                         if [[ -n "$noulEmail" && $noulEmail =~ $emailRegex ]] && ! grep -q "$noulEmail" "./db.csv"
                         then
                                 noulEmailTemp=$noulEmail
@@ -215,7 +215,7 @@ function actualizare {
                         else
                                 noulEmailTemp=$email
                         fi
-
+ 
                         if [[ -n "$nouaMedie" && $nouaMedie -le 10 && $nouaMedie -ge 1 ]]
                         then
                                 nouaMedieTemp=$nouaMedie
@@ -223,7 +223,7 @@ function actualizare {
                         else
                                 nouaMedieTemp=$medie
                         fi
-
+ 
                         len=`expr length "$nouaInaltime"`
                         inaltimeRegex='^[0-9]+$'
                         if [[ -n "$nouaInaltime" && $len -eq 3 && $nouaInaltime =~ $inaltimeRegex ]]
@@ -249,7 +249,7 @@ function actualizare {
                 echo ""
         fi
 }
-
+ 
 function afisareDupaMedie {
         echo ""
         echo "Afisare dupa medie: "
@@ -258,16 +258,22 @@ function afisareDupaMedie {
         sort -k4 -n -t, db.csv | tail -n +2
         echo ""
 }
-
+ 
 function afisareDupaInaltime {
         echo ""
-        echo "Cei mai inalti 3 studenti sunt: "
+        line_count=$(($(wc -l < db.csv) - 1))
+        if [[ $line_count -lt 3 ]]
+        then
+                echo "Cei mai inalti ${line_count} studenti sunt: "
+        else
+                echo "Cei mai inalti 3 studenti sunt: "
+        fi
         sleep 0.5
         echo ""
         sort -k5 -n -r -t, db.csv | head -n -1 | cut -d',' -f2,5 | head -n 3
         echo ""
 }
-
+ 
 creareDB
 while true; do
     select item in "${items[@]}" Termina
