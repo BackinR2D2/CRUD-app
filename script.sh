@@ -1,11 +1,11 @@
 #!/bin/bash
 PS3="Selecteaza element [1-6]: "
-
-items=("Adauga inregistrare" "Sterge inregistrare" "Afisare situatie student" "Actualizeaza inregistrare" "Afisare studenti dupa medie")
+#Prompt pentru select in bash
+items=("Adauga inregistrare" "Sterge inregistrare" "Afisare situatie student" "Actualizeaza inregistrare" "Afisare studenti dupa medie" "Afisare studenti dupa inaltime")
 
 # ID,nume,email,medie,inaltime
 
-emailRegex="^[a-z0-9!#\$%&'*+/=?^_\`{|}~-]+(\.[a-z0-9!#$%&'*+/=?^_\`{|}~-]+)*@([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z0-9]([a-z0-9-]*[a-z0-9])?\$"
+emailRegex="^[a-z0-9!#\$%&'+/=?^_\`{|}~-]+(\.[a-z0-9!#$%&'+/=?^_\`{|}~-]+)@([a-z0-9]([a-z0-9-][a-z0-9])?\.)+[a-z0-9]([a-z0-9-]*[a-z0-9])?\$"
 
 function creareDB {
         # Verificare daca exista fisierul folosind -f (file)
@@ -79,7 +79,7 @@ function sterge {
         echo "Stergere Inregistrare"
         read -p 'Introduceti ID pentru a sterge inregistrare: ' id
         local existaInregistrare=0
-
+#IFS=internal field separator
         while IFS=',' read -ra arr; do
                 if [[ ${arr[0]} == $id ]]
                 then
@@ -112,6 +112,9 @@ function afisare {
          elif [[ $ID -eq $id && !$medie -gt 5 && !$inaltime -ge 185 ]]
          then
                 echo "$nume este restant(a) si nu poate intra in echipa de baschet"
+         elif [[ $ID -eq $id && $medie -lt 5 && $inaltime -lt 185 ]]
+         then
+                echo "$nume este restant(a)"
          fi
         done < <(tail -n +2 "./db.csv")
 }
@@ -192,6 +195,13 @@ function afisareDupaMedie {
         echo ""
 }
 
+function afisareDupaInaltime {
+        echo ""
+        echo "Afisare dupa inaltime: "
+        sort -k5 -n -t, db.csv
+        echo ""
+}
+
 creareDB # Apelare functie pentru a crea fisierul CSV daca nu exista
 while true; do
     select item in "${items[@]}" Termina
@@ -202,6 +212,7 @@ while true; do
             3) afisare; break;;
             4) actualizare; break;;
             5) afisareDupaMedie; break;;
+            6) afisareDupaInaltime; break;;
             $((${#items[@]}+1))) echo "Program terminat"; break 2;;
             *) echo "Optiune necunoscuta"; break;
         esac
